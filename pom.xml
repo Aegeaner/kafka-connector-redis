@@ -41,7 +41,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kafka.version>0.10.2.0-SNAPSHOT</kafka.version>
+        <kafka.version>0.11.0.2</kafka.version>
         <junit.version>4.12</junit.version>
         <easymock.version>3.4</easymock.version>
         <powermock.version>1.6.6</powermock.version>
