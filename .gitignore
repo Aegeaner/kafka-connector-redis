@@ -21,5 +21,13 @@ buildNumber.properties
 *.ipr
 modules.xml
 
+# Eclipse
+.classpath
+.project
+.settings/
+
 events
 src/main/resources
+
+# OSX
+.DS_Store

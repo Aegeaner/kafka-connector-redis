@@ -1,24 +1,12 @@
 package org.apache.kafka.connect.redis;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+import java.nio.ByteBuffer;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-
-import com.moilioncircle.redis.replicator.cmd.Command;
 import org.apache.kafka.common.utils.AppInfoParser;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -26,12 +14,7 @@ import org.apache.kafka.connect.source.SourceTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import com.moilioncircle.redis.replicator.event.Event;
 
 public class RedisSourceTask extends SourceTask {
     private static final Logger log = LoggerFactory.getLogger(RedisSourceTask.class);
@@ -68,11 +51,11 @@ public class RedisSourceTask extends SourceTask {
     public List<SourceRecord> poll() throws InterruptedException {
         ArrayList<SourceRecord> records = new ArrayList<>();
 
-        Command cmd = eventBuffer.poll();
+        Event event = eventBuffer.poll();
 
-        if (cmd != null) {
+        if (event != null) {
             //log.debug(ev.toJson());
-            SourceRecord sourceRecord = getSourceRecord(cmd);
+            SourceRecord sourceRecord = getSourceRecord(event);
             log.debug(sourceRecord.toString());
             records.add(sourceRecord);
         }
@@ -80,7 +63,7 @@ public class RedisSourceTask extends SourceTask {
         return records;
     }
 
-    private SourceRecord getSourceRecord(Command cmd) {
+    private SourceRecord getSourceRecord(Event event) {
         Map<String, String> partition = Collections.singletonMap(RedisSourceConfig.SOURCE_PARTITION_KEY, RedisSourceConfig.SOURCE_PARTITION_VALUE);
         SchemaBuilder bytesSchema = SchemaBuilder.bytes();
 
@@ -91,7 +74,7 @@ public class RedisSourceTask extends SourceTask {
         // set timestamp as offset
         Map<String, ?> offset = Collections.singletonMap(RedisSourceConfig.OFFSET_KEY, timestamp);
 
-        return new SourceRecord(partition, offset, this.topic, null, bytesSchema, ByteBuffer.wrap(cmd.getClass().toString().getBytes()), null, cmd, timestamp);
+        return new SourceRecord(partition, offset, this.topic, null, bytesSchema, ByteBuffer.wrap(event.getClass().toString().getBytes()), null, event, timestamp);
     }
 
     @Override

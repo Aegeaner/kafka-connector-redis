@@ -1,5 +1,18 @@
 package org.apache.kafka.connect.redis;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,23 +31,11 @@ package org.apache.kafka.connect.redis;
  */
 
 
-import com.moilioncircle.redis.replicator.cmd.Command;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import com.moilioncircle.redis.replicator.event.Event;
 
 public class RedisBacklogEventBuffer {
     private static final Logger log = LoggerFactory.getLogger(RedisBacklogEventBuffer.class);
-    private final ConcurrentLinkedQueue<Command> queue;
+    private final ConcurrentLinkedQueue<Event> queue;
     private final MemoryChecker memoryChecker;
     private File eventCacheFile;
     private final String eventCacheFileName;
@@ -61,7 +62,7 @@ public class RedisBacklogEventBuffer {
         }
     }
 
-    public void put(Command event) throws IOException {
+    public void put(Event event) throws IOException {
         if(closed) {
             log.error("Attempt to put event to closed buffer. Rejecting event.");
             return;
@@ -88,7 +89,7 @@ public class RedisBacklogEventBuffer {
         return;
     }
 
-    private boolean shouldEvict(Command event) {
+    private boolean shouldEvict(Event event) {
 
         if (shouldEvict) {
             log.debug("Memory full, should begin to evict events");
@@ -96,7 +97,7 @@ public class RedisBacklogEventBuffer {
         return shouldEvict || (inMemorySize >= inMemoryLimit);
     }
 
-    private void persist(Command event) {
+    private void persist(Event event) {
         try {
             if(os == null || !eventCacheFile.canWrite()) {
                 eventCacheFile.delete();
@@ -114,8 +115,8 @@ public class RedisBacklogEventBuffer {
         }
     }
 
-    public Command poll()  {
-        Command event = null;
+    public Event poll()  {
+        Event event = null;
         if(inFileSize > 0) {
             if ( is == null ) {
                 try {
@@ -130,7 +131,7 @@ public class RedisBacklogEventBuffer {
                 }
             }
             try {
-                event = (Command) is.readObject();
+                event = (Event) is.readObject();
             } catch (Exception e) {
                 log.error("Fail to deserialize event cache file: {}", e.getMessage());
             }
