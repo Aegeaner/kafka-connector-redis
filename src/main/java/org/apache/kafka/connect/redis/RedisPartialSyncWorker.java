@@ -1,5 +1,11 @@
 package org.apache.kafka.connect.redis;
 
+import java.io.IOException;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -21,13 +27,8 @@ package org.apache.kafka.connect.redis;
 import com.moilioncircle.redis.replicator.Configuration;
 import com.moilioncircle.redis.replicator.RedisReplicator;
 import com.moilioncircle.redis.replicator.Replicator;
-import com.moilioncircle.redis.replicator.cmd.Command;
-import com.moilioncircle.redis.replicator.cmd.CommandListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Map;
+import com.moilioncircle.redis.replicator.event.Event;
+import com.moilioncircle.redis.replicator.event.EventListener;
 
 public class RedisPartialSyncWorker implements Runnable {
 
@@ -56,12 +57,12 @@ public class RedisPartialSyncWorker implements Runnable {
 
         Configuration sourceOffset = getSourceConfiguration(host, port, use_psync2);
         replicator = new RedisReplicator(host, port, sourceOffset);
-        replicator.addCommandListener(new CommandListener() {
+        replicator.addEventListener(new EventListener() {
             @Override
-            public void handle(Replicator replicator, Command command) {
-                log.debug(command.toString());
+            public void onEvent(Replicator replicator, Event event) {
+                log.debug(event.toString());
                 try {
-                    eventBuffer.put(command);
+                    eventBuffer.put(event);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
