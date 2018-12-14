@@ -31,6 +31,8 @@ import org.apache.kafka.connect.source.SourceTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moilioncircle.redis.replicator.event.Event;
 
 public class RedisSourceTask extends SourceTask {
@@ -40,6 +42,7 @@ public class RedisSourceTask extends SourceTask {
     private double memory_ratio;
     private String event_cache_file_name;
     private RedisBacklogEventBuffer eventBuffer;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private String topic;
 
@@ -49,8 +52,8 @@ public class RedisSourceTask extends SourceTask {
     }
 
     @Override
-    public void start(Map<String, String> props) {
-        Map<String, Object> configuration = RedisSourceConfig.CONFIG_DEF.parse(props);
+    public void start(final Map<String, String> props) {
+        final Map<String, Object> configuration = RedisSourceConfig.CONFIG_DEF.parse(props);
         in_memory_event_size = (long) configuration.get(RedisSourceConfig.IN_MEMORY_EVENT_SIZE);
         memory_ratio = (double) configuration.get(RedisSourceConfig.MEMORY_RATIO);
         event_cache_file_name = (String) configuration.get(RedisSourceConfig.EVENT_CACHE_FILE);
@@ -59,39 +62,47 @@ public class RedisSourceTask extends SourceTask {
 
         eventBuffer = new RedisBacklogEventBuffer(in_memory_event_size, memory_ratio, event_cache_file_name);
 
-        RedisPartialSyncWorker psyncWorker = new RedisPartialSyncWorker(eventBuffer, props);
-        Thread workerThread = new Thread(psyncWorker);
+        final RedisPartialSyncWorker psyncWorker = new RedisPartialSyncWorker(eventBuffer, props);
+        final Thread workerThread = new Thread(psyncWorker);
         workerThread.start();
     }
 
     @Override
     public List<SourceRecord> poll() throws InterruptedException {
-        ArrayList<SourceRecord> records = new ArrayList<>();
+        final ArrayList<SourceRecord> records = new ArrayList<>();
 
-        Event event = eventBuffer.poll();
+        final Event event = eventBuffer.poll();
 
         if (event != null) {
             //log.debug(ev.toJson());
-            SourceRecord sourceRecord = getSourceRecord(event);
-            log.debug(sourceRecord.toString());
-            records.add(sourceRecord);
+            final SourceRecord sourceRecord = getSourceRecord(event);
+            if (sourceRecord != null) {
+                log.debug("Source Record: {}", sourceRecord);
+                records.add(sourceRecord);
+            }
         }
 
         return records;
     }
 
-    private SourceRecord getSourceRecord(Event event) {
-        Map<String, String> partition = Collections.singletonMap(RedisSourceConfig.SOURCE_PARTITION_KEY, RedisSourceConfig.SOURCE_PARTITION_VALUE);
-        SchemaBuilder bytesSchema = SchemaBuilder.bytes();
+    SourceRecord getSourceRecord(final Event event) {
+        SourceRecord record = null;
+        final Map<String, String> partition = Collections.singletonMap(RedisSourceConfig.SOURCE_PARTITION_KEY, RedisSourceConfig.SOURCE_PARTITION_VALUE);
+        final SchemaBuilder bytesSchema = SchemaBuilder.bytes();
 
         // Redis backlog has no offset or timestamp
-        Timestamp ts = new Timestamp(System.currentTimeMillis()); // avoid invalid timestamp exception
-        long timestamp = ts.getTime();
+        final Timestamp ts = new Timestamp(System.currentTimeMillis()); // avoid invalid timestamp exception
+        final long timestamp = ts.getTime();
 
         // set timestamp as offset
-        Map<String, ?> offset = Collections.singletonMap(RedisSourceConfig.OFFSET_KEY, timestamp);
-
-        return new SourceRecord(partition, offset, this.topic, null, bytesSchema, ByteBuffer.wrap(event.getClass().toString().getBytes()), null, event, timestamp);
+        final Map<String, ?> offset = Collections.singletonMap(RedisSourceConfig.OFFSET_KEY, timestamp);
+        try {
+            final String cmd = mapper.writeValueAsString(event);
+            record = new SourceRecord(partition, offset, this.topic, null, bytesSchema, ByteBuffer.wrap(event.getClass().toString().getBytes()), null, cmd, timestamp);
+        } catch (final JsonProcessingException e) {
+            log.error("Error converting event to JSON", e);
+        }
+        return record;
     }
 
     @Override
