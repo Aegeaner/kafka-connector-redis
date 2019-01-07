@@ -5,6 +5,7 @@ import static java.lang.Thread.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
@@ -57,8 +58,11 @@ public class RedisSourceTaskTest {
         final SourceRecord sourceRecord = task.getSourceRecord(event);
 
         assertThat(sourceRecord, is(notNullValue()));
+        assertThat(sourceRecord.key(), is(notNullValue()));
+        assertThat(new String(((ByteBuffer) sourceRecord.key()).array()), is(LPushCommand.class.getName()));
         assertThat(sourceRecord.value(), is(notNullValue()));
         assertThat(sourceRecord.value().toString(), is("{\"key\":\"a2V5\",\"values\":[\"dmFsdWUx\",\"dmFsdWUy\"]}"));
+
 
         final ObjectMapper mapper = new ObjectMapper();
         final LPushCommand decoded = mapper.readValue(sourceRecord.value().toString().getBytes(StandardCharsets.UTF_8),

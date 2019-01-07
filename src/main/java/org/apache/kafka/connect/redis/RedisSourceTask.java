@@ -98,7 +98,7 @@ public class RedisSourceTask extends SourceTask {
         final Map<String, ?> offset = Collections.singletonMap(RedisSourceConfig.OFFSET_KEY, timestamp);
         try {
             final String cmd = mapper.writeValueAsString(event);
-            record = new SourceRecord(partition, offset, this.topic, null, bytesSchema, ByteBuffer.wrap(event.getClass().toString().getBytes()), null, cmd, timestamp);
+            record = new SourceRecord(partition, offset, this.topic, null, bytesSchema, ByteBuffer.wrap(event.getClass().getName().getBytes()), null, cmd, timestamp);
         } catch (final JsonProcessingException e) {
             log.error("Error converting event to JSON", e);
         }
