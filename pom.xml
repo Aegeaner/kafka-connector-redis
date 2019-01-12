@@ -45,7 +45,7 @@
         <junit.version>4.12</junit.version>
         <easymock.version>3.4</easymock.version>
         <powermock.version>1.6.6</powermock.version>
-        <jackson.version>2.9.7</jackson.version>
+        <jackson.version>2.9.8</jackson.version>
         <commons.version>3.5</commons.version>
         <redis.replicator.version>3.0.1</redis.replicator.version>
         <jedis.version>2.9.0</jedis.version>
