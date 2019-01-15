@@ -17,7 +17,6 @@ package org.apache.kafka.connect.redis;
  * limitations under the License.
  */
 
-import java.nio.ByteBuffer;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,7 +97,7 @@ public class RedisSourceTask extends SourceTask {
         final Map<String, ?> offset = Collections.singletonMap(RedisSourceConfig.OFFSET_KEY, timestamp);
         try {
             final String cmd = mapper.writeValueAsString(event);
-            record = new SourceRecord(partition, offset, this.topic, null, bytesSchema, ByteBuffer.wrap(event.getClass().getName().getBytes()), null, cmd, timestamp);
+            record = new SourceRecord(partition, offset, this.topic, null, bytesSchema, event.getClass().getName().getBytes(), null, cmd, timestamp);
         } catch (final JsonProcessingException e) {
             log.error("Error converting event to JSON", e);
         }
