@@ -40,6 +40,16 @@ public class MasterSnapshotRetriever {
         jedis = new Jedis(host, port);
     }
 
+    public MasterSnapshotRetriever(String host, int port, String password) {
+        String url = "redis://:"+password+"@"+host+":"+port+"/"+"0";//default database is usually 0
+        jedis = new Jedis(url);
+    }
+
+    public MasterSnapshotRetriever(String host, int port, String password, String dbName) {
+        String url = "redis://:"+password+"@"+host+":"+port+"/"+dbName;
+        jedis = new Jedis(url);
+    }
+
     public MasterSnapshot snapshot(Boolean use_psync2) {
         jedis.connect();
 

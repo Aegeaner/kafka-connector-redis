@@ -11,6 +11,15 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <dependencySets>
         <dependencySet>
+            <excludes>
+                <exclude>org.apache.kafka:connect-api</exclude>
+                <exclude>org.apache.kafka:connect-runtime</exclude>
+                <exclude>junit:junit</exclude>
+                <exclude>org.easymock:easymock</exclude>
+                <exclude>org.powermock:powermock-module-junit4</exclude>
+                <exclude>org.powermock:powermock-api-easymock</exclude>
+                <exclude>org.apache.commons:commons-lang3</exclude>
+            </excludes>
             <outputDirectory>share/java/kafka-connect-redis/</outputDirectory>
         </dependencySet>
     </dependencySets>
