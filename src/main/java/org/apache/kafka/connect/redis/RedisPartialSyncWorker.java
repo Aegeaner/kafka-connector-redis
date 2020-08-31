@@ -34,7 +34,7 @@ public class RedisPartialSyncWorker implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(RedisPartialSyncWorker.class);
 
-    private final RedisReplicator replicator;
+    private RedisReplicator replicator =null;
     private final String host;
     private final Integer port;
     private final String password;
@@ -42,16 +42,18 @@ public class RedisPartialSyncWorker implements Runnable {
     private Boolean use_psync2;
 
     public Configuration getSourceConfiguration(String host, Integer port, Boolean use_psync2) {
+        Configuration conf = Configuration.defaultSetting();
         MasterSnapshotRetriever msr;
 
         if (password==null || password.isEmpty()){
             msr = new MasterSnapshotRetriever(host, port);// if no password is provided we try to connect without a password
         } else{
             msr = new MasterSnapshotRetriever(host, port, password, dbName ); //dbName defaults to 0 in RedisSourceConfig class so we can trust this will be set
+            conf.setAuthPassword(password);
         }
 
         MasterSnapshot ms = msr.snapshot(use_psync2);
-        Configuration conf = Configuration.defaultSetting();
+
         conf.setReplId(ms.getRunId());
         conf.setReplOffset(Long.valueOf(ms.getMasterReplOffset()));
         return conf;
@@ -67,7 +69,24 @@ public class RedisPartialSyncWorker implements Runnable {
         use_psync2 = (Boolean)configuration.get(RedisSourceConfig.USE_PSYNC2);
 
         Configuration sourceOffset = getSourceConfiguration(host, port, use_psync2);
-        replicator = new RedisReplicator(host, port, sourceOffset);
+//        if (password==null || password.isEmpty()) {
+//            log.info("Password not set, attempting connection with Redis without auth");
+            replicator = new RedisReplicator(host, port, sourceOffset);
+            addEventListener(eventBuffer);
+//        } else{
+//            String url = "redis://:"+password+"@"+host+":"+port+"/"+dbName;
+//            try {
+//                log.info("Password set, attempting connection with Redis with auth");
+//                replicator = new RedisReplicator(url);
+//                addEventListener(eventBuffer);
+//            } catch (Exception e){
+//                e.printStackTrace();
+//            }
+//        }
+
+    }
+
+    private void addEventListener(final RedisBacklogEventBuffer eventBuffer){
         replicator.addEventListener(new EventListener() {
             @Override
             public void onEvent(Replicator replicator, Event event) {
