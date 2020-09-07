@@ -113,7 +113,7 @@ plugin.path=share/java,/opt/confluent-5.1.0/share/confluent-hub-components
 -If your redis server has the password enabled add these properties (dbName is always 0 unless you have configured otherwise):
 `password=yourpassword`
 `dbName=0`
-- In plugin folder (/opt/confluent-5.1.0/share/java/kafka-connect-redis/) download and place the following plugins:
+- Copy the following jars from ./target/kafka-connect-redis-1.0-SNAPSHOT-development/share/java/kafka-connect-redis) and put them in the plugin folder (/opt/confluent-5.1.0/share/java/kafka-connect-redis/) :
 `commons-logging-1.2.jar`
 `jedis-2.9.0.jar`
 `kafka-connect-redis-1.0-SNAPSHOT.jar`
