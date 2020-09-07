@@ -110,7 +110,7 @@ plugin.path=share/java,/opt/confluent-5.1.0/share/confluent-hub-components
 `topic=your-topic-name`
 `host=localhost`
 `port=6379`
--If your redis server has the password enabled add these properties (dbName is always 0 unless you have configured otherwise):
+- If your redis server has the password enabled add these properties (dbName is always 0 unless you have configured otherwise):
 `password=yourpassword`
 `dbName=0`
 - Copy the following jars from ./target/kafka-connect-redis-1.0-SNAPSHOT-development/share/java/kafka-connect-redis) and put them in the plugin folder (/opt/confluent-5.1.0/share/java/kafka-connect-redis/) :
