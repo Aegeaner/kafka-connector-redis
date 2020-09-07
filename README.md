@@ -41,9 +41,11 @@ On Redis version 4.x
 `value.converter=org.apache.kafka.connect.storage.StringConverter`
 `key.converter.schemas.enable=false`
 `value.converter.schemas.enable=false`
+
 *Remove following properties from connect-standalone.properties file:
 `key.converter.schema.registry.url=http://localhost:8081`
 `value.converter.schema.registry.url=http://localhost:8081`
+
 *Create new file named redis.config in following directory /confluent-4.1.1/etc/schema-registry/ and add following properties to this file:
 `name=redis-config`
 `connector.class=org.apache.kafka.connect.redis.RedisSourceConnector`
@@ -82,6 +84,42 @@ kafka-connect-redis-1.0-SNAPSHOT.jar
 redis-replicator-3.0.1.jar
 - Navigate to confluent/bin directory and set the CLASSPATH by executing command
 - export CLASSPATH=/home/yahussain/Tools/confluent-4.0.0/share/kafka-rest/*
+- Start kafka by executing command
+`./confluent start kafka-rest`
+- Start the connector by executing following command:
+`./connect-standalone ../etc/schema-registry/connect-avro-standalone.properties ../etc/schema-registry/redis.properties`
+
+# On Redis version 5.x/6.x with Confluent 5.1.0
+- Get plugin jar file for kafka-connect-redis (kafka-connect-redis-1.0-SNAPSHOT.jar) by building this project (mvn clean package) and copying it from the ./target directory
+- Create the plugin folder (/opt/confluent-5.1.0/share/java/kafka-connect-redis/)
+- Start redis-server (start redis database from folder 'redis-stable/src' by executing command *./redis-server)
+- Edit connect-avro-standalone.properties file (located in confluent-5.1.0/etc/schema-registry/ ) add location of the plugin jar file in property plugin.path for example:
+plugin.path=share/java,/opt/confluent-5.1.0/share/confluent-hub-components
+- Change the following property values in connect-avro-standalone.properties as specified here:
+`key.converter=org.apache.kafka.connect.converters.ByteArrayConverter`
+`value.converter=org.apache.kafka.connect.storage.StringConverter`
+`key.converter.schemas.enable=false`
+`value.converter.schemas.enable=false`
+- Comment / remove following properties from connect-avro-standalone.properties file:
+`key.converter.schema.registry.url=http://localhost:8081`
+`value.converter.schema.registry.url=http://localhost:8081`
+- Create new file named redis.properties in following directory /confluent-5.1.0/etc/schema-registry/ and add following properties to this file:
+`name=redis-config`
+`connector.class=org.apache.kafka.connect.redis.RedisSourceConnector`
+`tasks.max=1`
+`topic=your-topic-name`
+`host=localhost`
+`port=6379`
+-If your redis server has the password enabled add these properties (dbName is always 0 unless you have configured otherwise):
+`password=yourpassword`
+`dbName=0`
+- In plugin folder (/opt/confluent-5.1.0/share/java/kafka-connect-redis/) download and place the following plugins:
+`commons-logging-1.2.jar`
+`jedis-2.9.0.jar`
+`kafka-connect-redis-1.0-SNAPSHOT.jar`
+`redis-replicator-3.0.1.jar`
+- Navigate to confluent/bin directory and set the CLASSPATH by executing command
+- export CLASSPATH=/opt/confluent-5.1.0/share/java/kafka-connect-redis/*
 - Start kafka by executing command
 `./confluent start kafka-rest`
 - Start the connector by executing following command:
