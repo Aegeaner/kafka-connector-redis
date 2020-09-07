@@ -69,20 +69,9 @@ public class RedisPartialSyncWorker implements Runnable {
         use_psync2 = (Boolean)configuration.get(RedisSourceConfig.USE_PSYNC2);
 
         Configuration sourceOffset = getSourceConfiguration(host, port, use_psync2);
-//        if (password==null || password.isEmpty()) {
-//            log.info("Password not set, attempting connection with Redis without auth");
             replicator = new RedisReplicator(host, port, sourceOffset);
             addEventListener(eventBuffer);
-//        } else{
-//            String url = "redis://:"+password+"@"+host+":"+port+"/"+dbName;
-//            try {
-//                log.info("Password set, attempting connection with Redis with auth");
-//                replicator = new RedisReplicator(url);
-//                addEventListener(eventBuffer);
-//            } catch (Exception e){
-//                e.printStackTrace();
-//            }
-//        }
+
 
     }
 
