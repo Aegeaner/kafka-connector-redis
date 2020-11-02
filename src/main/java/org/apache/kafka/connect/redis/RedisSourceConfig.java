@@ -47,7 +47,7 @@ public class RedisSourceConfig extends AbstractConfig {
             .define(DB_NAME, ConfigDef.Type.STRING, "0", ConfigDef.Importance.HIGH, "Redis server database name (this is often just 0)")
             .define(TOPIC, ConfigDef.Type.STRING, "redis", ConfigDef.Importance.HIGH, "Redis database topic in kafka")
             .define(POLL_BATCH_SIZE, ConfigDef.Type.INT, 100, ConfigDef.Importance.HIGH, "Task poll batch size")
-            .define(IN_MEMORY_EVENT_SIZE, ConfigDef.Type.LONG, 1024L, ConfigDef.Importance.HIGH, "In memory event size")
+            .define(IN_MEMORY_EVENT_SIZE, ConfigDef.Type.LONG, 209715200L, ConfigDef.Importance.HIGH, "In memory event size")//200 MB default im-memory queue size
             .define(MEMORY_RATIO, ConfigDef.Type.DOUBLE, 0.5, ConfigDef.Importance.HIGH, "Memory ratio limit")
             .define(EVENT_CACHE_FILE, ConfigDef.Type.STRING, "events", ConfigDef.Importance.HIGH, "Event cache file name")
             .define(USE_PSYNC2, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.HIGH, "Whether use Psync 2 introduced by redis 4.0");
