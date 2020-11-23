@@ -1,3 +1,14 @@
+Building this project
+--
+The automated tests that run when this project builds rely on a redis server running locally for integration tests to execute. The local instance should listen on port 6379, and must NOT have requirepass setting enabled.
+
+To build the project, be sure you have maven and a JDK installed with JAVA_HOME variable set correctly. Then cd to the folder with the source code and type: `mvn clean package`
+
+A jar will appear in the target sub-folder of the project titled kafka-connect-redis-1.0-SNAPSHOT.jar. In order to properly install the plugin you will need this jar and some of the dependencies copied to the correct path on the kafka server. See below for instructions on installation:
+
+
+
+
 Notice
 --
 I used [RedisReplicator](https://github.com/leonchen83/redis-replicator) as the Redis comand parser, so e.g. the List push command is defined as: [LPushCommand.java](https://github.com/leonchen83/redis-replicator/blob/master/src/main/java/com/moilioncircle/redis/replicator/cmd/impl/LPushCommand.java). The connector wrapped the command using its name as the key, with the serialization of the command as the value.
