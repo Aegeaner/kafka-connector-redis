@@ -27,7 +27,7 @@ import java.util.Map;
 public class RedisSourceConfig extends AbstractConfig {
     public static final String HOST = "host";
     public static final String PORT = "port";
-    public static final String PASSWORD ="password";
+    public static final String PASSWORD = "password";
     public static final String DB_NAME = "dbName";
     public static final String POLL_BATCH_SIZE = "poll_batch_size";
     public static final String IN_MEMORY_EVENT_SIZE = "in_memory_event_size";

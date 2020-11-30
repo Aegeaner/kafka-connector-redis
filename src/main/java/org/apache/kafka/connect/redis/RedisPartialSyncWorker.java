@@ -34,7 +34,7 @@ public class RedisPartialSyncWorker implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(RedisPartialSyncWorker.class);
 
-    private RedisReplicator replicator =null;
+    private RedisReplicator replicator = null;
     private final String host;
     private final Integer port;
     private final String password;
@@ -71,11 +71,9 @@ public class RedisPartialSyncWorker implements Runnable {
         Configuration sourceOffset = getSourceConfiguration(host, port, use_psync2);
             replicator = new RedisReplicator(host, port, sourceOffset);
             addEventListener(eventBuffer);
-
-
     }
 
-    private void addEventListener(final RedisBacklogEventBuffer eventBuffer){
+    private void addEventListener(final RedisBacklogEventBuffer eventBuffer) {
         replicator.addEventListener(new EventListener() {
             @Override
             public void onEvent(Replicator replicator, Event event) {
