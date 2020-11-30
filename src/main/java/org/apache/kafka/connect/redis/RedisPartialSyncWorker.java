@@ -69,8 +69,8 @@ public class RedisPartialSyncWorker implements Runnable {
         use_psync2 = (Boolean)configuration.get(RedisSourceConfig.USE_PSYNC2);
 
         Configuration sourceOffset = getSourceConfiguration(host, port, use_psync2);
-            replicator = new RedisReplicator(host, port, sourceOffset);
-            addEventListener(eventBuffer);
+        replicator = new RedisReplicator(host, port, sourceOffset);
+        addEventListener(eventBuffer);
     }
 
     private void addEventListener(final RedisBacklogEventBuffer eventBuffer) {
