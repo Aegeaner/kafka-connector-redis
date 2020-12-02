@@ -27,6 +27,8 @@ import java.util.Map;
 public class RedisSourceConfig extends AbstractConfig {
     public static final String HOST = "host";
     public static final String PORT = "port";
+    public static final String PASSWORD = "password";
+    public static final String DB_NAME = "dbName";
     public static final String POLL_BATCH_SIZE = "poll_batch_size";
     public static final String IN_MEMORY_EVENT_SIZE = "in_memory_event_size";
     public static final String MEMORY_RATIO = "memory_ratio";
@@ -39,14 +41,17 @@ public class RedisSourceConfig extends AbstractConfig {
 
 
     public static final ConfigDef CONFIG_DEF = new ConfigDef()
-            .define(HOST, ConfigDef.Type.STRING, "localhost", ConfigDef.Importance.HIGH, "MongoDB Server host")
-            .define(PORT, ConfigDef.Type.INT, 6379, ConfigDef.Importance.HIGH, "MongoDB Server port")
+            .define(HOST, ConfigDef.Type.STRING, "localhost", ConfigDef.Importance.HIGH, "Redis Server host")
+            .define(PORT, ConfigDef.Type.INT, 6379, ConfigDef.Importance.HIGH, "Redis Server port")
+            .define(PASSWORD, ConfigDef.Type.STRING, null, ConfigDef.Importance.LOW, "Redis server password (requirepass setting in redis.conf)" )
+            .define(DB_NAME, ConfigDef.Type.STRING, "0", ConfigDef.Importance.HIGH, "Redis server database name (this is often just 0)")
             .define(TOPIC, ConfigDef.Type.STRING, "redis", ConfigDef.Importance.HIGH, "Redis database topic in kafka")
             .define(POLL_BATCH_SIZE, ConfigDef.Type.INT, 100, ConfigDef.Importance.HIGH, "Task poll batch size")
-            .define(IN_MEMORY_EVENT_SIZE, ConfigDef.Type.LONG, 1024L, ConfigDef.Importance.HIGH, "In memory event size")
+            .define(IN_MEMORY_EVENT_SIZE, ConfigDef.Type.LONG, 209715200L, ConfigDef.Importance.HIGH, "In memory event size")//200 MB default im-memory queue size
             .define(MEMORY_RATIO, ConfigDef.Type.DOUBLE, 0.5, ConfigDef.Importance.HIGH, "Memory ratio limit")
             .define(EVENT_CACHE_FILE, ConfigDef.Type.STRING, "events", ConfigDef.Importance.HIGH, "Event cache file name")
             .define(USE_PSYNC2, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.HIGH, "Whether use Psync 2 introduced by redis 4.0");
+
 
     public RedisSourceConfig(Map<?, ?> originals) {
         super(CONFIG_DEF, originals);

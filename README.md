@@ -1,3 +1,14 @@
+Building this project
+--
+The automated tests that run when this project builds rely on a redis server running locally for integration tests to execute. The local instance should listen on port 6379, and must NOT have requirepass setting enabled.
+
+To build the project, be sure you have maven and a JDK installed with JAVA_HOME variable set correctly. Then cd to the folder with the source code and type: `mvn clean package`
+
+A jar will appear in the target sub-folder of the project titled kafka-connect-redis-1.0-SNAPSHOT.jar. In order to properly install the plugin you will need this jar and some of the dependencies copied to the correct path on the kafka server. See below for instructions on installation:
+
+
+
+
 Notice
 --
 I used [RedisReplicator](https://github.com/leonchen83/redis-replicator) as the Redis comand parser, so e.g. the List push command is defined as: [LPushCommand.java](https://github.com/leonchen83/redis-replicator/blob/master/src/main/java/com/moilioncircle/redis/replicator/cmd/impl/LPushCommand.java). The connector wrapped the command using its name as the key, with the serialization of the command as the value.
@@ -27,3 +38,100 @@ Starting with Redis 2.8, master and slave are usually able to continue the repli
 This works by creating an in-memory backlog of the replication stream on the master side. The master and all the slaves agree on a replication offset and a master run ID, so when the link goes down, the slave will reconnect and ask the master to continue the replication. Assuming the master run ID is still the same, and that the offset specified is available in the replication backlog, replication will resume from the point where it left off. If either of these conditions are unmet, a full resynchronization is performed (which is the normal pre-2.8 behavior). As the run ID of the connected master is not persisted to disk, a full resynchronization is needed when the slave restarts.
 
 The new partial resynchronization feature uses the PSYNC command internally, while the old implementation uses the SYNC command. Note that a Redis slave is able to detect if the server it is talking with does not support PSYNC, and will use SYNC instead.
+
+
+On Redis version 4.x
+--
+
+* Get plugin jar file of kafka-connect-redis
+* Start redis-server (in order to use redis replication define Redis Master server in redis.conf file within Redis database directory and start Redis database by `redis-server ../redis.conf` command
+* Edit `connect-standalone.properties` file (located in confluent-4.1.1/etc/schema-registry/)
+* Add location of the plugin jar file in property plugin.path for example plugin.path=/usr/local/share/java,/usr/local/share/kafka/plugins,/opt/connectors/
+* Set following properties to connect-standalone.properties file:
+`key.converter=org.apache.kafka.connect.converters.ByteArrayConverter`
+`value.converter=org.apache.kafka.connect.storage.StringConverter`
+`key.converter.schemas.enable=false`
+`value.converter.schemas.enable=false`
+
+*Remove following properties from connect-standalone.properties file:
+`key.converter.schema.registry.url=http://localhost:8081`
+`value.converter.schema.registry.url=http://localhost:8081`
+
+*Create new file named redis.config in following directory /confluent-4.1.1/etc/schema-registry/ and add following properties to this file:
+`name=redis-config`
+`connector.class=org.apache.kafka.connect.redis.RedisSourceConnector`
+`tasks.max=1`
+`topic=your-topic-name`
+`host=localhost`
+`port=6379`
+* Open terminal and add jar files namely `commons-logging-1.2.jar, redis-replicator-2.4.5.jar and jedis-2.9.0.jar` to the CLASSPATH variable 
+* Navigate to confluent/bin directory and start the connector by executing following command:
+`./connect-standalone ../etc/schema-registry/connect-standalone.properties ../etc/schema-registry/redis.properties`
+
+# On Redis version 5.x
+- Get plugin jar file for kafka-connect-redis
+- Start redis-server (start redis database from folder 'redis-stable/src' by executing command *./redis-server)
+- Edit connect-standalone.properties file (located in confluent-4.1.1/etc/schema-registry/ ) add location of the plugin jar file in property plugin.path for example:
+plugin.path=/home/yahussain/Tools/confluent-4.0.0/share/kafka-rest/
+- Add following properties to connect-avro-standalone.properties
+`key.converter=org.apache.kafka.connect.converters.ByteArrayConverter`
+`value.converter=org.apache.kafka.connect.storage.StringConverter`
+`key.converter.schemas.enable=false`
+`value.converter.schemas.enable=false`
+- Comment / remove following properties from connect-avro-standalone.properties file:
+`key.converter.schema.registry.url=http://localhost:8081`
+`value.converter.schema.registry.url=http://localhost:8081`
+- Create new file named redis.config in following directory /confluent-4.1.1/etc/schema-registry/ and add following properties to this file:
+name=redis-config
+connector.class=org.apache.kafka.connect.redis.RedisSourceConnector
+tasks.max=1
+topic=your-topic-name
+host=localhost
+port=6379
+- In plugin path (/home/yahussain/Tools/confluent-4.0.0/share/kafka-rest/) download and place the following plugins:
+commons-logging-1.2.jar
+jedis-2.9.0.jar
+kafka-connect-redis-1.0-SNAPSHOT.jar
+redis-replicator-3.0.1.jar
+- Navigate to confluent/bin directory and set the CLASSPATH by executing command
+- export CLASSPATH=/home/yahussain/Tools/confluent-4.0.0/share/kafka-rest/*
+- Start kafka by executing command
+`./confluent start kafka-rest`
+- Start the connector by executing following command:
+`./connect-standalone ../etc/schema-registry/connect-avro-standalone.properties ../etc/schema-registry/redis.properties`
+
+# On Redis version 5.x/6.x with Confluent 5.1.0
+- Get plugin jar file for kafka-connect-redis (kafka-connect-redis-1.0-SNAPSHOT.jar) by building this project (mvn clean package) and copying it from the ./target directory
+- Create the plugin folder (/opt/confluent-5.1.0/share/java/kafka-connect-redis/)
+- Start redis-server (start redis database from folder 'redis-stable/src' by executing command *./redis-server)
+- Edit connect-avro-standalone.properties file (located in confluent-5.1.0/etc/schema-registry/ ) add location of the plugin jar file in property plugin.path for example:
+plugin.path=share/java,/opt/confluent-5.1.0/share/confluent-hub-components
+- Change the following property values in connect-avro-standalone.properties as specified here:
+`key.converter=org.apache.kafka.connect.converters.ByteArrayConverter`
+`value.converter=org.apache.kafka.connect.storage.StringConverter`
+`key.converter.schemas.enable=false`
+`value.converter.schemas.enable=false`
+- Comment / remove following properties from connect-avro-standalone.properties file:
+`key.converter.schema.registry.url=http://localhost:8081`
+`value.converter.schema.registry.url=http://localhost:8081`
+- Create new file named redis.properties in following directory /confluent-5.1.0/etc/schema-registry/ and add following properties to this file:
+`name=redis-config`
+`connector.class=org.apache.kafka.connect.redis.RedisSourceConnector`
+`tasks.max=1`
+`topic=your-topic-name`
+`host=localhost`
+`port=6379`
+- If your redis server has the password enabled add these properties (dbName is always 0 unless you have configured otherwise):
+`password=yourpassword`
+`dbName=0`
+- Copy the following jars from ./target/kafka-connect-redis-1.0-SNAPSHOT-development/share/java/kafka-connect-redis) and put them in the plugin folder (/opt/confluent-5.1.0/share/java/kafka-connect-redis/) :
+`commons-logging-1.2.jar`
+`jedis-2.9.0.jar`
+`kafka-connect-redis-1.0-SNAPSHOT.jar`
+`redis-replicator-3.0.1.jar`
+- Navigate to confluent/bin directory and set the CLASSPATH by executing command
+- export CLASSPATH=/opt/confluent-5.1.0/share/java/kafka-connect-redis/*
+- Start kafka by executing command
+`./confluent start kafka-rest`
+- Start the connector by executing following command:
+`./connect-standalone ../etc/schema-registry/connect-avro-standalone.properties ../etc/schema-registry/redis.properties`

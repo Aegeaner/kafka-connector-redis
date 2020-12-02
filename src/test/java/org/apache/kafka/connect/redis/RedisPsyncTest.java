@@ -18,11 +18,13 @@ package org.apache.kafka.connect.redis;
  */
 
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +46,40 @@ public class RedisPsyncTest {
         MasterSnapshot ms = msr.snapshot(use_psync2);
         assertNotNull(ms.getRunId());
         assertNotNull(ms.getMasterReplOffset());
+    }
+
+    @Test
+    public void testGetRedisInfoUsingRedisPassword() {
+
+   /*this test assumes the local instance running Redis is NOT using the "requirepass" feature in redis.conf
+
+    Which yields the following Error:
+    ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?
+    */
+        Optional<Exception> exceptionCaught = Optional.empty();
+        try {
+            MasterSnapshotRetriever msr = new MasterSnapshotRetriever("localhost", 6379, "testpassword");
+            MasterSnapshot ms = msr.snapshot(use_psync2);
+        } catch (Exception e){
+            exceptionCaught = Optional.of(e);
+        }
+        Assert.assertTrue(exceptionCaught.isPresent());
+        Assert.assertTrue(exceptionCaught.get().getMessage().contains("ERR AUTH <password> called without any password configured for the default user."));
+    }
+
+    @Test
+    public void testGetRedisInfoUsingRedisPasswordAndDB() {//this test assumes the local instance running Redis is NOT using the "requirepass" feature in redis.conf
+
+        Optional<Exception> exceptionCaught = Optional.empty();
+        try {
+            MasterSnapshotRetriever msr = new MasterSnapshotRetriever("localhost", 6379, "testpassword", "0");
+            MasterSnapshot ms = msr.snapshot(use_psync2);
+        } catch (Exception e){
+            exceptionCaught = Optional.of(e);
+        }
+
+        Assert.assertTrue(exceptionCaught.isPresent());
+        Assert.assertTrue(exceptionCaught.get().getMessage().contains("ERR AUTH <password> called without any password configured for the default user."));
     }
 
     @Test
