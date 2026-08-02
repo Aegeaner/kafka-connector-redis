@@ -29,6 +29,7 @@ import com.moilioncircle.redis.replicator.RedisReplicator;
 import com.moilioncircle.redis.replicator.Replicator;
 import com.moilioncircle.redis.replicator.event.Event;
 import com.moilioncircle.redis.replicator.event.EventListener;
+import com.moilioncircle.redis.replicator.cmd.impl.PingCommand;
 
 public class RedisPartialSyncWorker implements Runnable {
 
@@ -78,6 +79,9 @@ public class RedisPartialSyncWorker implements Runnable {
             @Override
             public void onEvent(Replicator replicator, Event event) {
                 log.debug(event.toString());
+                if (event instanceof PingCommand) {
+                    return;
+                }
                 try {
                     eventBuffer.put(event);
                 } catch (IOException e) {
